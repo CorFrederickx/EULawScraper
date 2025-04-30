@@ -3,7 +3,7 @@ Searching and scraping European legislation
 
 This repository combines Python code allows you to mimic the behaviour of the search engines of several official websites of the European Union, and scrape the found legislation from the web. These websites are:
 
-1. The advanced search of [EUR-Lex] (https://eur-lex.europa.eu/advanced-search-form.html)
+1. The advanced search of [EUR-Lex](https://eur-lex.europa.eu/advanced-search-form.html)
 
 2. The search box that you can find on the different websites of the [European Commission](https://commission.europa.eu/index_en?wt-search=yes)
 
