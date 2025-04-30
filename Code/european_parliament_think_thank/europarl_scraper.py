@@ -7,7 +7,7 @@ import os
 import re
 import json
 
-from ..scraper import BaseScraper
+from scraper import BaseScraper
 
 class EuroparlScraper(BaseScraper):
 

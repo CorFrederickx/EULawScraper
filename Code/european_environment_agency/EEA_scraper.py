@@ -8,7 +8,7 @@ import time
 import os
 import json
 
-from ..scraper import BaseScraper
+from scraper import BaseScraper
 
 class EEAScraper(BaseScraper):
 

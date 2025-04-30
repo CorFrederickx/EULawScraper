@@ -22,7 +22,7 @@ class BaseSearchURL(abc.ABC):
         for language in languages.split():
             self.languages.append(language)
 
-    @abc.abstractmethod
+    @abc.abstractmethod # this is a decorator indicating abstract methods.
     def build(self):
         raise NotImplementedError("Subclasses must implement the build method")
 

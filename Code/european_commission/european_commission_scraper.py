@@ -4,7 +4,7 @@ import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse, parse_qs
 
-from ..scraper import BaseScraper
+from scraper import BaseScraper
 
 class EuropeanCommissionScraper(BaseScraper):
 

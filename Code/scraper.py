@@ -1,14 +1,8 @@
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse, parse_qs
-import json
-import os
-import time
-import tempfile
-import fitz  # PyMuPDF
-from selenium import webdriver
 
-class BaseScraper:
+class BaseScraper():
     def __init__(self, base_url):
         self.base_url = base_url
         self.headers = {"User-Agent": "Mozilla/5.0"}
@@ -23,3 +17,17 @@ class BaseScraper:
             print(f"Error fetching {url}: {e}")
             return None
     
+    # kunnen deze functies beter elders staan?
+    
+    def create_folders(folders):
+        for folder in folders:
+            os.makedirs(folder, exist_ok=True)
+
+    def move_files_to_folders(files, folder_mapping):
+        for file in files:
+            for extension, folder in folder_mapping.items():
+                if file.endswith(extension):
+                    shutil.move(file, os.path.join(folder, file))
+
+        
+

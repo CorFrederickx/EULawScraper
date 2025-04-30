@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse, parse_qs
 import json
 
-from ..scraper import BaseScraper
+from scraper import BaseScraper
 
 class EurLexScraper(BaseScraper):
 
