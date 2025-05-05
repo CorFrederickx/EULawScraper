@@ -1,6 +1,6 @@
 # EULawScraper
 
-Welcome to EULawScraper, a Python-based tool designed to mimic the search engines of several official European Union websites and scrape the resulting legislation from the web (including handy metadata when possible).
+EULawScraper is a Python-based tool designed to mimic the search engines of several official European Union websites and scrape the resulting legislation from the web (including handy metadata when possible).
 
 ## Supported websites
 
