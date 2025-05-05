@@ -130,11 +130,17 @@ class EEAScraper(BaseScraper):
 
             if metadata:
                 self.metadata_list.append(metadata)
+            
+        # write metadata to JSON in current dir
+        metadata_dict = {
+            item["Title"]: item
+        for item in self.metadata_list if "Title" in item
+        }
 
-    def scrape_documents(self, document_urls, folder_path):
-        
-        # create folder if it does not exist
-        os.makedirs(folder_path, exist_ok=True)
+        with open("metadata.json", "w", encoding="utf-8") as f:
+            json.dump(metadata_dict, f, indent=4, ensure_ascii=False)
+
+    def scrape_documents(self, document_urls):
 
         for url in document_urls:
             soup = self.get_soup(url)
@@ -149,18 +155,17 @@ class EEAScraper(BaseScraper):
 
             # clean filename if needed
             safe_filename = "".join(c if c.isalnum() or c in "-_." else "_" for c in filename_base)
-            filepath = os.path.join(folder_path, f"{safe_filename}.html")
+            filepath = os.path.join(".", f"{safe_filename}.html")
 
-            # write as a HTML file
+            # write as a HTML file in the current directory
             with open(filepath, "w", encoding="utf-8") as f:
                 f.write(soup.prettify())
 
-
-    def run(self, metadata_path, folder_path, scrape=True):
+    def run(self, scrape=True):
 
         driver = webdriver.Chrome()
 
-        all_pages = self.get_pagination_urls(self.driver)
+        all_pages = self.get_pagination_urls(driver)
         print(f"search results: total pages found: {len(all_pages)}")
 
         all_legislation_urls = []
@@ -178,14 +183,10 @@ class EEAScraper(BaseScraper):
             self.extract_metadata(page_url, driver)
             
         print(f"Total legislation documents found: {len(all_legislation_urls)}")
-
-        metadata_dict = {item["Title"]: item for item in self.metadata_list if "Title" in item}
-        with open(metadata_path, "w", encoding="utf-8") as f:
-            json.dump(metadata_dict, f, indent=4, ensure_ascii=False)
         
         if scrape:
             print('Start scraping ')
-            self.scrape_documents(all_legislation_urls, folder_path=folder_path)
+            self.scrape_documents(all_legislation_urls)
 
         driver.quit()
 

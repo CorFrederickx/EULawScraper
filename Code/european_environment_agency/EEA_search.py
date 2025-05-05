@@ -226,7 +226,7 @@ class EEASearch(BaseSearchURL):
             self.countries.append(country)
 
     def set_content_type (self, content_types):
-        for type in content_types:
+        for type in content_types.split():
             if type not in self.valid_content_types:
                 raise ValueError(f"Invalid type: '{type}'. Must be one of: {list(self.valid_content_types)}")
             if ' ' in type:

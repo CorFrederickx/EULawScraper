@@ -29,7 +29,6 @@ class EuropeanCommissionScraper(BaseScraper):
 
         if last_page_link:
             last_page_number = int(last_page_link['value'])
-            print(last_page_number)
             paginated_urls.extend(self.base_url.replace('&page=', f'&page={page}')for page in range(2, last_page_number + 1))
 
         else:
@@ -73,7 +72,6 @@ class EuropeanCommissionScraper(BaseScraper):
                 file_response.raise_for_status()
                 with open(filename, "wb") as f:
                     f.write(file_response.content)
-                    print(f"Saved file: {filename}")
 
             except Exception as e:
                     print(f"Failed to download {filename}: {e}")
@@ -97,3 +95,4 @@ class EuropeanCommissionScraper(BaseScraper):
         if scrape:
             print('Start scraping ')
             self.scrape_documents(all_legislation_urls)
+

@@ -76,6 +76,7 @@ class GetAdvancedSearchURL(BaseSearchURL):
         self.CELEX_number = None
         self.date_type = None
         self.theme = None
+        #self.document_languages = []
     
     # collection
     def set_collection(self, collection: str):
@@ -194,7 +195,7 @@ class GetAdvancedSearchURL(BaseSearchURL):
             url += f'&DC_CODED={self.theme}'
 
         # language(s)
-        if self.document_languages:
-            url += f'&wh0=andCOMPOSE%3D{"%3BCOMPOSE%3D".join(self.document_languages)}'
+        #if self.document_languages:
+        #   url += f'&wh0=andCOMPOSE%3D{"%3BCOMPOSE%3D".join(self.document_languages)}'
 
         return url

@@ -75,6 +75,15 @@ class EurLexScraper(BaseScraper):
             if metadata:
                 self.metadata_list.append(metadata)
 
+        # write metadata to JSON in current dir
+        metadata_dict = {
+            item["CELEX number"]: item
+            for item in self.metadata_list if "CELEX number" in item
+        }
+
+        with open("metadata.json", "w", encoding="utf-8") as f:
+            json.dump(metadata_dict, f, indent=4, ensure_ascii=False)
+
     def collect_document_urls(self, url): # extracts all the legal document urls from a given search results page.
         soup = self.get_soup(url)
         if not soup:
@@ -105,7 +114,7 @@ class EurLexScraper(BaseScraper):
             with open(f"{celex_number}.html", "w", encoding="utf-8") as f:
                 f.write(str(soup.prettify()))  # Save HTML
 
-    def run(self, metadata_path, scrape=True):
+    def run(self, scrape=True):
         all_pages = self.get_pagination_urls()
         print(f"search results: total pages found: {len(all_pages)}")
 
@@ -122,12 +131,9 @@ class EurLexScraper(BaseScraper):
             self.extract_metadata(page_url)
             
         print(f"Total legislation documents found: {len(all_legislation_urls)}")
-
-        metadata_dict = {item["CELEX number"]: item for item in self.metadata_list if "CELEX number" in item}
-        with open(metadata_path, "w", encoding="utf-8") as f:
-            json.dump(metadata_dict, f, indent=4, ensure_ascii=False)
         
         if scrape:
             print('Start scraping ')
             self.scrape_documents(all_legislation_urls)
+            
 

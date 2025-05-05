@@ -7,7 +7,7 @@ from european_parliament_think_thank import run_europarl
 
 def main():
     choices = {
-        "eurlex": run_eur_lex.scrape_htmls,
+        "eurlex": run_eur_lex.scrape_docs,
         "commission": run_european_commission.scrape_docs,
         "eea": run_EEA.scrape_docs,
         "europarl": run_europarl.scrape_docs

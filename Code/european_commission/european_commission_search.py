@@ -84,3 +84,4 @@ class EuropeanCommissionSearch(BaseSearchURL):
             url += f'&more_options_f_formats={self.format}'
 
         return url
+    

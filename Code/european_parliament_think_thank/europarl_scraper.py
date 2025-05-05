@@ -1,10 +1,8 @@
 import requests
-from bs4 import BeautifulSoup
-from urllib.parse import urljoin, urlparse, parse_qs
+from urllib.parse import urlparse
 import fitz
 import tempfile
 import os
-import re
 import json
 
 from scraper import BaseScraper
@@ -15,6 +13,7 @@ class EuroparlScraper(BaseScraper):
         super().__init__(base_url)
         
         self.metadata_list = []
+        self.seen_document_ids = set()  # Set to track document IDs to avoid duplicates
         
     def collect_document_urls(self, url):
 
@@ -120,8 +119,14 @@ class EuroparlScraper(BaseScraper):
         if metadata and "title" in metadata and "type" in metadata:
             self.metadata_list.append(metadata)
 
-        return self.metadata_list
+        # write metadata to JSON in current dir
+        metadata_dict = {
+            item["title"]: item
+            for item in self.metadata_list if "title" in item
+        }
 
+        with open("metadata.json", "w", encoding="utf-8") as f:
+            json.dump(metadata_dict, f, indent=4, ensure_ascii=False)
 
     def scrape_documents(self, document_urls):
 
@@ -132,25 +137,34 @@ class EuroparlScraper(BaseScraper):
                 parsed_url = urlparse(url)
                 path = parsed_url.path
                 filename = os.path.basename(path)
+                document_id = filename.split('_')[1]
+
+                if document_id in self.seen_document_ids:
+                    print(f"Skipping duplicate document (ID: {document_id}) - {filename}")
+                    continue
+
+                self.seen_document_ids.add(document_id)
+
             try:
                 file_response = requests.get(url)
                 file_response.raise_for_status()
                 with open(filename, "wb") as f:
                     f.write(file_response.content)
-                    print(f"Saved file: {filename}")
 
             except Exception as e:
                 print(f"Failed to download {url}: {e}") 
 
-    def run(self, metadata_path, scrape=True):
+
+    def run(self):
 
         self.extract_metadata(self.base_url)
-        metadata_dict = {item["title"]: item for item in self.metadata_list if "title" in item}
-        with open(metadata_path, "w", encoding="utf-8") as f:
-            json.dump(metadata_dict, f, indent=4, ensure_ascii=False)
 
         document_urls = self.collect_document_urls(self.base_url)
         document_urls = list(set(document_urls))
+
+        print(f"Total downloadable documents found: {len(document_urls)}")
+
+        print('Start scraping ')
         self.scrape_documents(document_urls)
         
     

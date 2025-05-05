@@ -1,3 +1,5 @@
+import os
+from file_utils import FileManager
 from scraper import BaseScraper
 from european_environment_agency.EEA_search import EEASearch
 from european_environment_agency.EEA_scraper import EEAScraper
@@ -10,14 +12,24 @@ def scrape_docs():
     folder_path = input("Enter folder to save files: ")
     metadata_path = input("Enter path for metadata file: ")
 
-    # OUDE SETUP TERUGZETTEN
+    search = EEASearch()
+    search.set_text(text)
+    search.set_content_type(content_types)
+    search.set_time_period(period)
+    
+    base_url = search.build()
+    print(f'the search results page is: {base_url}')
+    
+    scraper = EEAScraper(base_url)
+    scraper.run()
 
     folder_structure = {
-        'folder_path': folder_path,
-        'metadata_path': metadata_path,
         'folders': [folder_path, metadata_path],
         'file_mapping': {".html": folder_path, ".json": metadata_path}
     }
-    
-    # saving the files
+
+    FileManager.create_folders(folder_structure['folders'])
+    FileManager.move_files_to_folders(os.listdir(), folder_structure['file_mapping'])
+
+    print(f"Scraped files saved in: {folder_path}")
 
