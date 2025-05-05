@@ -1,6 +1,6 @@
-# 🔎 Cheat Sheet: Valid Input Parameters
+# Cheat Sheet: Valid Input Parameters
 
-The `:`is meant as a separator between parameter and description
+The `:`is meant as a separator between parameter and an informative description
 
 ---
 
@@ -62,7 +62,7 @@ The `:`is meant as a separator between parameter and description
 ## European Commission
 
 ### Dates
-- * : All  
+- \* : All  
 - -7 : Last week  
 - -31 : Last month  
 - -365 : Last year
@@ -72,7 +72,7 @@ The `:`is meant as a separator between parameter and description
   mt, nl, pl, pt, ro, sk, sl, fi, sv, ot
 
 ### Formats
-- * : All
+- \* : All
 - htm : Web
 - doc : Word
 - xls : Excel
