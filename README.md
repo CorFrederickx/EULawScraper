@@ -35,12 +35,6 @@ Run the main.py file and:
 
 Based on your input the run file will further execute, performing the search and scraping the documents. 
 
-## Nice to know
-
-- The website of the European Environment Agency loads dynamically. For that reason, the scraper makes use of [Selenium Webdriver](https://www.selenium.dev/documentation/webdriver/). This means that the code will automatically open a Chrome window to navigate to the right spot to scrape
-
-- The scraper for the website of the Think Thank of the European Parliament, makes use of a pdf file that is automatically generated on the website after every search. It can be found in the upper right corner of the search results page and contains a handy overview of everything
-
 ## Good to Know
 
 - The European Environment Agency's website loads content dynamically. To handle this, the scraper uses [Selenium WebDriver](https://www.selenium.dev/documentation/webdriver/). When the scraper runs, it will automatically launch a Chrome browser instance to navigate and extract the necessary data.
