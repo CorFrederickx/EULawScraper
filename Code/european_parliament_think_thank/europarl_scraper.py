@@ -6,6 +6,7 @@ import os
 import json
 
 from scraper import BaseScraper
+from .standardize_metadata_europarl import standardize_metadata
 
 class EuroparlScraper(BaseScraper):
 
@@ -124,9 +125,10 @@ class EuroparlScraper(BaseScraper):
             item["title"]: item
             for item in self.metadata_list if "title" in item
         }
+        standard_metadata_dict = standardize_metadata(metadata_dict)
 
-        with open("metadata.json", "w", encoding="utf-8") as f:
-            json.dump(metadata_dict, f, indent=4, ensure_ascii=False)
+        with open("metadata_europarl.json", "w", encoding="utf-8") as f:
+            json.dump(standard_metadata_dict, f, indent=4, ensure_ascii=False)
 
     def scrape_documents(self, document_urls):
 

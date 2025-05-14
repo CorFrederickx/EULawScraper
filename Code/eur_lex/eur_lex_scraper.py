@@ -4,6 +4,7 @@ from urllib.parse import urljoin, urlparse, parse_qs
 import json
 
 from scraper import BaseScraper
+from .standardize_metadata_eurlex import standardize_metadata
 
 class EurLexScraper(BaseScraper):
 
@@ -75,14 +76,16 @@ class EurLexScraper(BaseScraper):
             if metadata:
                 self.metadata_list.append(metadata)
 
-        # write metadata to JSON in current dir
+        # convert metadata to the standard metadata format
         metadata_dict = {
             item["CELEX number"]: item
             for item in self.metadata_list if "CELEX number" in item
         }
+        standard_metadata_dict = standardize_metadata(metadata_dict)
 
-        with open("metadata.json", "w", encoding="utf-8") as f:
-            json.dump(metadata_dict, f, indent=4, ensure_ascii=False)
+        # write metadata to JSON in current dir
+        with open("metadata_eurlex.json", "w", encoding="utf-8") as f:
+            json.dump(standard_metadata_dict, f, indent=4, ensure_ascii=False)
 
     def collect_document_urls(self, url): # extracts all the legal document urls from a given search results page.
         soup = self.get_soup(url)

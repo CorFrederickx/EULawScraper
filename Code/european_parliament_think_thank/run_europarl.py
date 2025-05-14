@@ -6,8 +6,8 @@ from european_parliament_think_thank.europarl_scraper import EuroparlScraper
 def scrape_docs ():
     
     text = input("Enter search text: ")
-    start_date = input("Enter a start date (YYYYMMDD): ")
-    end_date = input("Enter an end date (YYYYMMDD): ")
+    start_date = input("Enter a start date (DDMMYYYY): ")
+    end_date = input("Enter an end date (DDMMYYYY): ")
     publication_types = input("Enter publication types: ")
     folder_path = input("Enter folder to save files: ")
     metadata_path = input("Enter path for metadata file: ")
