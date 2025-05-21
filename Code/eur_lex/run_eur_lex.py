@@ -8,8 +8,8 @@ def scrape_docs():
 
     collections= input("Enter collection(s): ")
     text = input("Enter search text: ")
-    start_date = input("Enter a start date (YYYYMMDD): ")
-    end_date = input("Enter an end date (YYYYMMDD) (make it the same as the start date if looking for a specific date): ")
+    start_date = input("Enter a start date (DDMMYYYY): ")
+    end_date = input("Enter an end date (DDMMYYYY) (make it the same as the start date if looking for a specific date): ")
     folder_path = input("Enter folder to save files: ")
     metadata_path = input("Enter path for metadata file: ")
 
