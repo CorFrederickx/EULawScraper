@@ -54,27 +54,19 @@ class EuropeanCommissionScraper(BaseScraper):
             
         return list(unique_urls)
     
+    def extract_filename_from_url(self, url):
+        parsed_url = urlparse(url)
+        query_params = parse_qs(parsed_url.query)
+        return query_params.get("filename", [None])[0]
+
     def scrape_documents(self, document_urls):
-
+        
         for url in document_urls:
-            try:
-                # extract filename from URL
-                filename = None
-                parsed_url = urlparse(url)
-                query_params = parse_qs(parsed_url.query)
-                filename = query_params.get("filename", [None])[0]
-                
-                if not filename:
-                    print(f"filename not found in URL: {url}")
-                    continue
-
-                file_response = requests.get(url)
-                file_response.raise_for_status()
-                with open(filename, "wb") as f:
-                    f.write(file_response.content)
-
-            except Exception as e:
-                    print(f"Failed to download {filename}: {e}")
+            filename = self.extract_filename_from_url(url)
+            if not filename:
+                print(f"Filename not found in URL: {url}")
+                continue
+            self.download_file(url, filename)
 
     def run(self, scrape=True):
         

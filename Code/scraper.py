@@ -1,6 +1,5 @@
 import requests
 from bs4 import BeautifulSoup
-from urllib.parse import urljoin, urlparse, parse_qs
 
 class BaseScraper():
     def __init__(self, base_url):
@@ -8,26 +7,38 @@ class BaseScraper():
         self.headers = {"User-Agent": "Mozilla/5.0"}
     
     # function to fetch and parse an html page
-    def get_soup(self, url):
+        
+    def fetch_response(self, url):
         try:
             response = requests.get(url, headers=self.headers)
-            response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
-            return BeautifulSoup(response.text, 'html.parser')
-        except requests.exceptions.RequestException as e:
-            print(f"Error fetching {url}: {e}")
+            response.raise_for_status()
+            return response
+        except requests.RequestException as e:
+            print(f"Request failed for {url}: {e}")
             return None
+        
+    def fetch_pdf_response(self, url):
+        response = self.fetch_response(url)
+        if not response:
+            return []
+        return response.content
     
-    # kunnen deze functies beter elders staan?
+    def get_soup(self, url):
+        response = self.fetch_response(url)
+        if response:
+            return BeautifulSoup(response.text, 'html.parser')
+        return None
     
-    def create_folders(folders):
-        for folder in folders:
-            os.makedirs(folder, exist_ok=True)
+    def download_file(self, url, filename):
+        try:
+            response = self.fetch_response(url)
+            with open(filename, "wb") as f:
+                f.write(response.content)
+            print(f"Downloaded: {filename}")
+        except Exception as e:
+            print(f"Failed to download {filename}: {e}")
 
-    def move_files_to_folders(files, folder_mapping):
-        for file in files:
-            for extension, folder in folder_mapping.items():
-                if file.endswith(extension):
-                    shutil.move(file, os.path.join(folder, file))
+
 
         
 

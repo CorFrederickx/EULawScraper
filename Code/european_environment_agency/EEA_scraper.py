@@ -9,6 +9,8 @@ import os
 import json
 
 from scraper import BaseScraper
+from .standardize_metadata_eea import standardize_metadata
+from metadata_schema import save_metadata_to_file
 
 class EEAScraper(BaseScraper):
 
@@ -70,6 +72,45 @@ class EEAScraper(BaseScraper):
             print("No document URLs found on this page.")
 
         return list(unique_urls)
+    
+    def parse_result_block(self, block):
+        metadata = {}
+        info_divs = block.find_all('div', class_='result-info')
+
+        for div in info_divs:
+            label_span = div.find('span', class_='result-info-title')
+            if label_span:
+                label_text = label_span.get_text(strip=True)
+                full_text = div.get_text(strip=True).replace(label_text, '').strip()
+
+                if 'Topics:' in label_text:
+                    metadata['Topics'] = full_text
+                elif 'Source:' in label_text:
+                    a_tag = div.find('a', href=True)
+                    if a_tag:
+                        metadata['Source URL'] = a_tag['href']
+                        strong_tag = a_tag.find('strong')
+                        if strong_tag:
+                            metadata['Source'] = strong_tag.get_text(strip=True)
+            elif not div.find('span'):
+                metadata['Date'] = div.get_text(strip=True)
+
+        return metadata
+    
+    def parse_title_metadata(self, block):
+        metadata = {}
+        title_tag = block.find_previous('h3', class_='listing-header')
+        if title_tag:
+            a_tag = title_tag.find('a', href=True)
+            if a_tag:
+                new_label = a_tag.find('div', class_='ui label new-item')
+                metadata['Is New'] = bool(new_label)
+                if new_label:
+                    new_label.extract()
+                metadata['Title'] = a_tag.get_text(strip=True)
+                metadata['URL'] = a_tag['href']
+        return metadata
+
 
     def extract_metadata(self, url, driver):
         driver.get(url)
@@ -77,68 +118,25 @@ class EEAScraper(BaseScraper):
 
         html = driver.page_source
         soup = BeautifulSoup(html, 'html.parser')
-
         if not soup:
             raise ValueError(f'No response for this URL: {url}')
         
         result_blocks = soup.find_all('div', class_='slot-bottom')
-        
+
         for block in result_blocks:
-            metadata = {}
-
-            # get all result-info divs inside this block
-            info_divs = block.find_all('div', class_='result-info')
-
-            for div in info_divs:
-                label_span = div.find('span', class_='result-info-title')
-                if label_span:
-                    label_text = label_span.get_text(strip=True)
-
-                    # get the remaining text in the div after the label
-                    full_text = div.get_text(strip=True).replace(label_text, '').strip()
-
-                    if 'Topics:' in label_text:
-                        metadata['Topics'] = full_text
-
-                    elif 'Source:' in label_text:
-                        a_tag = div.find('a', href=True)
-                        if a_tag:
-                            metadata['Source URL'] = a_tag['href']
-                            strong_tag = a_tag.find('strong')
-                            if strong_tag:
-                                metadata['Source'] = strong_tag.get_text(strip=True)
-
-                # fallback: assume if no label, it's the date
-                elif not div.find('span'):
-                    metadata['Date'] = div.get_text(strip=True)
-
-            # get title and page URL from previous <h3>
-            title_tag = block.find_previous('h3', class_='listing-header')
-            if title_tag:
-                a_tag = title_tag.find('a', href=True)
-                if a_tag:
-                    # Check for "New" label inside the <a>
-                    new_label = a_tag.find('div', class_='ui label new-item')
-                    if new_label:
-                        metadata['Is New'] = True
-                        new_label.extract()  # Remove it before getting the title text
-                    else:
-                        metadata['Is New'] = False
-
-                    metadata['Title'] = a_tag.get_text(strip=True)
-                    metadata['URL'] = a_tag['href']
+            metadata = self.parse_result_block(block)
+            metadata.update(self.parse_title_metadata(block))
 
             if metadata:
                 self.metadata_list.append(metadata)
-            
-        # write metadata to JSON in current dir
+
         metadata_dict = {
             item["Title"]: item
-        for item in self.metadata_list if "Title" in item
+            for item in self.metadata_list if "Title" in item
         }
 
-        with open("metadata.json", "w", encoding="utf-8") as f:
-            json.dump(metadata_dict, f, indent=4, ensure_ascii=False)
+        standardized = standardize_metadata(metadata_dict)
+        save_metadata_to_file(standardized, "metadata_eea.json")
 
     def scrape_documents(self, document_urls):
 

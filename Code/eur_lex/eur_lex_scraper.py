@@ -5,6 +5,7 @@ import json
 
 from scraper import BaseScraper
 from .standardize_metadata_eurlex import standardize_metadata
+from metadata_schema import save_metadata_to_file
 
 class EurLexScraper(BaseScraper):
 
@@ -37,57 +38,70 @@ class EurLexScraper(BaseScraper):
 
         return paginated_urls
     
-    def extract_metadata(self, url): # extract metadata per document from a search result page
+    def parse_metadata_block(self, block):
+        metadata = {}
+        dt_elements = block.find_all('dt')
+        dd_elements = block.find_all('dd')
+        
+        for dt, dd in zip(dt_elements, dd_elements):
+            key = dt.get_text(strip=True).replace(":", "")
+            value = dd.get_text(strip=True)
+            metadata[key] = value
+        return metadata
+    
+    def extract_legal_status(self, div):
+        status_div = div.find_previous('div', class_='DocStatus')
+        if status_div:
+            status_text = status_div.get_text(strip=True)
+            return not "No longer in force" in status_text
+        return None
+
+    # based on metadata this url can be built
+    def build_celex_url(self, celex_number):
+        return f'https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:{celex_number}'
+    
+    # function which does the opposite, extracts the celex from the url
+    def extract_celex_number_from_url(self, url):
+        parsed_url = urlparse(url)
+        query_params = parse_qs(parsed_url.query)
+        if "uri" in query_params:
+            return query_params["uri"][0].split(":")[-1]
+        return None
+
+    def build_metadata_dict(self):
+        return {
+            item["CELEX number"]: item
+            for item in self.metadata_list if "CELEX number" in item
+        }
+    
+    def extract_metadata(self, url):
         soup = self.get_soup(url)
 
-        if not soup:
-            raise ValueError(f'No response for this URL: {url}')
-
         result_divs = soup.find_all('div', class_='SearchResultData collapse in')
-        
+
         for div in result_divs:
             metadata = {}
-            
             metadata_blocks = div.find_all('dl')
-            
-            for block in metadata_blocks:
-                dt_elements = block.find_all('dt')
-                dd_elements = block.find_all('dd')
-                
-                for dt, dd in zip(dt_elements, dd_elements):
-                    key = dt.get_text(strip=True).replace(":", "")
-                    value = dd.get_text(strip=True)
-                    metadata[key] = value
-            
-            # get the legal status and add it to the metadata
-            status_div = div.find_previous('div', class_='DocStatus')
-            if status_div:
-                status_text = status_div.get_text(strip=True)
-                if "No longer in force" in status_text:
-                    metadata["In force"] = False
-                else:
-                    metadata["In force"] = True
 
-            # get the url and add it to the metadata
+            for block in metadata_blocks:
+                block_metadata = self.parse_metadata_block(block)
+                metadata.update(block_metadata)
+
+            in_force = self.extract_legal_status(div)
+            if in_force is not None:
+                metadata["In force"] = in_force
+
             if "CELEX number" in metadata:
-                celex_number = metadata["CELEX number"]
-                metadata['url'] = f'https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:{celex_number}'
+                metadata["url"] = self.build_celex_url(metadata["CELEX number"])
 
             if metadata:
                 self.metadata_list.append(metadata)
 
-        # convert metadata to the standard metadata format
-        metadata_dict = {
-            item["CELEX number"]: item
-            for item in self.metadata_list if "CELEX number" in item
-        }
-        standard_metadata_dict = standardize_metadata(metadata_dict)
+        metadata_dict = self.build_metadata_dict()
+        standardized = standardize_metadata(metadata_dict)
+        save_metadata_to_file(standardized, "metadata_eurlex.json")
 
-        # write metadata to JSON in current dir
-        with open("metadata_eurlex.json", "w", encoding="utf-8") as f:
-            json.dump(standard_metadata_dict, f, indent=4, ensure_ascii=False)
-
-    def collect_document_urls(self, url): # extracts all the legal document urls from a given search results page.
+    def collect_document_urls(self, url):
         soup = self.get_soup(url)
         if not soup:
             return []
@@ -102,13 +116,8 @@ class EurLexScraper(BaseScraper):
 
         for url in document_urls:
             soup = self.get_soup(url)
-            if soup:
-                # extract CELEX number from URL
-                celex_number = None
-                parsed_url = urlparse(url)
-                query_params = parse_qs(parsed_url.query)
-                if "uri" in query_params:
-                    celex_number = query_params["uri"][0].split(":")[-1]
+            
+            celex_number = self.extract_celex_number_from_url(url)
 
             if not celex_number:
                 print(f"Skipping document (CELEX number not found): {url}")
@@ -116,6 +125,7 @@ class EurLexScraper(BaseScraper):
             
             with open(f"{celex_number}.html", "w", encoding="utf-8") as f:
                 f.write(str(soup.prettify()))  # Save HTML
+        
 
     def run(self, scrape=True):
         all_pages = self.get_pagination_urls()
