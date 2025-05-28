@@ -8,12 +8,22 @@ from scraper import BaseScraper
 
 class EuropeanCommissionScraper(BaseScraper):
 
+    # functions that determine how 'run' function in BaseClass is used
+    def uses_driver(self):
+        return False
+
+    def has_pagination(self):
+        return True
+
+    def extracts_metadata(self):
+        return False
+
     def __init__(self, base_url):
         super().__init__(base_url)
         self.base_url = base_url
         self.headers = {"User-Agent": "Mozilla/5.0"}
         
-    def get_pagination_urls(self):
+    def get_pagination_urls(self, driver=None):
         paginated_urls = [self.base_url]
         soup = self.get_soup(self.base_url)
 
@@ -38,7 +48,7 @@ class EuropeanCommissionScraper(BaseScraper):
         return paginated_urls
 
     
-    def collect_document_urls(self, url):
+    def collect_document_urls(self, url, driver=None):
 
         soup = self.get_soup(url)
         if not soup:
@@ -67,24 +77,4 @@ class EuropeanCommissionScraper(BaseScraper):
                 print(f"Filename not found in URL: {url}")
                 continue
             self.download_file(url, filename)
-
-    def run(self, scrape=True):
-        
-        all_pages = self.get_pagination_urls()
-        print(f"search results: total pages found: {len(all_pages)}")
-        
-        all_legislation_urls = []
-        
-        for page_url in all_pages:
-            
-            page_doc_urls = self.collect_document_urls(page_url)
-            print(page_doc_urls)
-            
-            all_legislation_urls.extend(page_doc_urls)
-                
-        print(f"Total downloadable documents found: {len(all_legislation_urls)}")
-            
-        if scrape:
-            print('Start scraping ')
-            self.scrape_documents(all_legislation_urls)
 

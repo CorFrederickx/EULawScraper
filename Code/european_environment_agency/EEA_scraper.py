@@ -14,6 +14,19 @@ from metadata_schema import save_metadata_to_file
 
 class EEAScraper(BaseScraper):
 
+    # functions that determine how 'run' function in BaseClass is used
+    def uses_driver(self):
+        return True
+    
+    def create_driver(self):
+        return webdriver.Chrome()
+
+    def has_pagination(self):
+        return True
+
+    def extracts_metadata(self):
+        return True
+
     def __init__(self, base_url):
         super().__init__(base_url)
 
@@ -158,33 +171,4 @@ class EEAScraper(BaseScraper):
             # write as a HTML file in the current directory
             with open(filepath, "w", encoding="utf-8") as f:
                 f.write(soup.prettify())
-
-    def run(self, scrape=True):
-
-        driver = webdriver.Chrome()
-
-        all_pages = self.get_pagination_urls(driver)
-        print(f"search results: total pages found: {len(all_pages)}")
-
-        all_legislation_urls = []
-
-        for page_url in all_pages:
-
-            print(page_url)
-
-            page_doc_urls = self.collect_document_urls(page_url, driver)
-
-            print(f'page_doc_URLS: {page_doc_urls}')
-
-            all_legislation_urls.extend(page_doc_urls)
-
-            self.extract_metadata(page_url, driver)
-            
-        print(f"Total legislation documents found: {len(all_legislation_urls)}")
-        
-        if scrape:
-            print('Start scraping ')
-            self.scrape_documents(all_legislation_urls)
-
-        driver.quit()
 

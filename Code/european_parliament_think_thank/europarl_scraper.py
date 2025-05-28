@@ -10,6 +10,16 @@ from metadata_schema import save_metadata_to_file
 
 class EuroparlScraper(BaseScraper):
 
+    # functions that determine how 'run' function in BaseClass is used
+    def uses_driver(self):
+        return False
+
+    def has_pagination(self):
+        return False
+
+    def extracts_metadata(self):
+        return True
+
     def __init__(self, base_url):
         super().__init__(base_url)
         
@@ -52,17 +62,17 @@ class EuroparlScraper(BaseScraper):
                     document_urls.append(uri)
         return document_urls
     
-    def cleanup_pdf(self, pdf_document, pdf_path):
+    def remove_temporary_pdf(self, pdf_document, pdf_path):
         try:
             if pdf_document:
                 pdf_document.close()
             if pdf_path and os.path.exists(pdf_path):
                 os.remove(pdf_path)
         except Exception as e:
-            print(f"Cleanup failed: {e}")
+            print(f"Removal failed: {e}")
 
 
-    def collect_document_urls(self, url):
+    def collect_document_urls(self, url, driver=None):
 
         pdf_document, pdf_path = self.open_pdf_from_url(url)
 
@@ -75,7 +85,7 @@ class EuroparlScraper(BaseScraper):
             print(f"Error while processing PDF: {e}")
             return []
         finally:
-            self.cleanup_pdf(pdf_document, pdf_path)
+            self.remove_temporary_pdf(pdf_document, pdf_path)
 
     # extracting the metadata:
     
@@ -122,7 +132,7 @@ class EuroparlScraper(BaseScraper):
 
         return metadata_list
 
-    def extract_metadata(self, url):
+    def extract_metadata(self, url, driver=None):
 
         pdf_document, pdf_path = self.open_pdf_from_url(url)
         if not pdf_document:
@@ -131,7 +141,7 @@ class EuroparlScraper(BaseScraper):
         try:
             lines = self.extract_pdf_lines(pdf_document, skip_lines=9)
         finally:
-            self.cleanup_pdf(pdf_document, pdf_path)
+            self.remove_temporary_pdf(pdf_document, pdf_path)
 
         
         parsed_metadata = self.parse_metadata_from_lines(lines)
@@ -171,16 +181,5 @@ class EuroparlScraper(BaseScraper):
                 print(f"Failed to download {url}: {e}") 
 
 
-    def run(self):
-
-        self.extract_metadata(self.base_url)
-
-        document_urls = self.collect_document_urls(self.base_url)
-        document_urls = list(set(document_urls))
-
-        print(f"Total downloadable documents found: {len(document_urls)}")
-
-        print('Start scraping ')
-        self.scrape_documents(document_urls)
         
     

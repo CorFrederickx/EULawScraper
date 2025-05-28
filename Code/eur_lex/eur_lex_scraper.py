@@ -9,13 +9,23 @@ from metadata_schema import save_metadata_to_file
 
 class EurLexScraper(BaseScraper):
 
+    # functions that determine how 'run' function in BaseClass is used
+    def uses_driver(self):
+        return False
+
+    def has_pagination(self):
+        return True
+
+    def extracts_metadata(self):
+        return True
+
     def __init__(self, base_url):
         super().__init__(base_url)
         
         self.metadata_list = [] # list of dictionaries containing the metadata, later saved as JSON with celex numbers as keys
         self.documents = []
 
-    def get_pagination_urls(self): # retrieve url of all the pages
+    def get_pagination_urls(self, driver=None): # retrieve url of all the pages
         paginated_urls = [self.base_url]
         soup = self.get_soup(self.base_url)
 
@@ -74,7 +84,7 @@ class EurLexScraper(BaseScraper):
             for item in self.metadata_list if "CELEX number" in item
         }
     
-    def extract_metadata(self, url):
+    def extract_metadata(self, url, driver=None):
         soup = self.get_soup(url)
 
         result_divs = soup.find_all('div', class_='SearchResultData collapse in')
@@ -101,7 +111,7 @@ class EurLexScraper(BaseScraper):
         standardized = standardize_metadata(metadata_dict)
         save_metadata_to_file(standardized, "metadata_eurlex.json")
 
-    def collect_document_urls(self, url):
+    def collect_document_urls(self, url, driver=None):
         soup = self.get_soup(url)
         if not soup:
             return []
@@ -125,28 +135,5 @@ class EurLexScraper(BaseScraper):
             
             with open(f"{celex_number}.html", "w", encoding="utf-8") as f:
                 f.write(str(soup.prettify()))  # Save HTML
-        
-
-    def run(self, scrape=True):
-        all_pages = self.get_pagination_urls()
-        print(f"search results: total pages found: {len(all_pages)}")
-
-        all_legislation_urls = []
-
-        for page_url in all_pages:
-
-            page_doc_urls = self.collect_document_urls(page_url)
-
-            print(page_doc_urls)
-
-            all_legislation_urls.extend(page_doc_urls)
-
-            self.extract_metadata(page_url)
-            
-        print(f"Total legislation documents found: {len(all_legislation_urls)}")
-        
-        if scrape:
-            print('Start scraping ')
-            self.scrape_documents(all_legislation_urls)
             
 
