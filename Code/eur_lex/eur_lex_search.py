@@ -1,6 +1,10 @@
+"""mimicking the Advanced Search of the EUR-Lex website"""
+
 from search import BaseSearchURL
 
 class GetAdvancedSearchURL(BaseSearchURL):
+    
+    """Class for building search URLs. Builds on the abstract base class BaseSearchURL"""
 
     valid_collections = {
         # EU law and case-law
@@ -60,6 +64,13 @@ class GetAdvancedSearchURL(BaseSearchURL):
     }
 
     def __init__(self):
+
+        """
+        Initialize an instance of the URL builder with the EUR-Lex Advanced Search base URL
+
+        This sets up all possible search parameters as None or empty lists, ready to be set using the following functions.
+        """
+
         super().__init__(base_url='https://eur-lex.europa.eu/search.html?')
 
         self.collection = None
@@ -80,19 +91,45 @@ class GetAdvancedSearchURL(BaseSearchURL):
     
     # collection
     def set_collection(self, collection: str):
+
+        """
+        Checks if the collection you want to search in belongs to the valid options. These are listed in the above valid_collections dictionary, also in the cheatsheet.
+        If not valid, an error is raised.
+        If valid, the right domain is also set, based on the chosen collection.
+
+        :param collection: The collection you want to search in.
+        """
+
         if collection not in self.valid_collections:
             raise ValueError(f"Invalid collection: '{collection}'. Must be one of: {list(self.valid_collections.keys())}")
         self.collection = collection
         self.domain = self.domain = 'EU_LAW' if collection in list(self.valid_collections)[:10] else 'NATIONAL_LAW'
 
     def set_multiple_collections(self, collections: list[str]):
+
+        """
+        Checks if the collections you want to search in belong to the valid options. These are listed in the above valid_collections dictionary, also in the cheatsheet.
+        If not valid, an error is raised.
+
+        :param collections: A python list of multiple collections to search within. 
+        """
+
         for collection in collections:
             if collection not in self.valid_collections:
                 raise ValueError(f"Invalid collection: '{collection}'. Must be one of: {list(self.valid_collections.keys())}")
             self.collections.append(collection)
 
+
     # text search:
-    def set_first_text(self, text, scope='ti-te'): # three kinds of text queries: normal, exact match and varying. Last two do not exclude each other
+    def set_first_text(self, text, scope='ti-te'):
+
+        """
+        Defines the search text and its scope (title, text, or both). Special characters like quotes and question marks are URL-encoded.
+
+        :param text: Search terms (use quotation marks for exact match, '?' or '*' for wildcards).
+        :param scope: Where to search: in the title ('ti'), text ('te') or both ('ti-te')
+        """
+
         for term in text.split():
             encoded_term = term
             if '"' in encoded_term: # exact match case (quotation marks around text)
@@ -103,6 +140,15 @@ class GetAdvancedSearchURL(BaseSearchURL):
         self.text_scope_0 = scope
 
     def set_extra_text(self, text, boolean_operator='and', scope='ti-te'):
+
+        """
+        Defines additional search text to refine the query. Works in combination with the first search text, connected by a boolean operator.
+
+        :param text: Additional search terms.
+        :param boolean_operator: Logical connector between first and extra text ('and', 'or', 'not').
+        :param scope: Search scope (title, text, or both). Same options as `set_first_text`.
+        """
+
         for term in text.split():
             encoded_term = term
             if '"' in encoded_term:
@@ -115,6 +161,11 @@ class GetAdvancedSearchURL(BaseSearchURL):
     
     # document reference
     def set_document_year (self, year: int):
+        """
+        Sets the year of the document.
+
+        :param year: A four-digit integer representing the document's year.
+        """
         self.year = year
     
     def set_document_number (self, document_number: int):
@@ -128,12 +179,24 @@ class GetAdvancedSearchURL(BaseSearchURL):
 
     # Author of the document
     def set_author (self, author):
+        """
+        Specifies the author of the document. Must match an author in the `valid_authors` dictionary.
+
+        :param author: A valid author as a string.
+        """
+
         if author not in self.valid_authors:
             raise ValueError(f"Invalid author: '{author}'. Must be one of: {list(self.valid_authors.keys())}")
         self.author = author
 
     # Search by CELEX number
     def set_CELEX_number (self, celex: str):
+        """
+        Sets the CELEX number to search for. Automatically URL-encodes '?' and appends an '*' if not present.
+
+        :param celex: CELEX number as a string.
+        """
+
         if '?' in celex:
                 celex = celex.replace('?', '%3F')
         if not celex.endswith('*'):
@@ -142,19 +205,42 @@ class GetAdvancedSearchURL(BaseSearchURL):
         self.CELEX_number = celex
     
     # search by date
-    def set_date_range(self, date_type, start_date, end_date): # format is ddmmyyyy, make both dates the same if looking for a specific date
-        if date_type not in self.valid_date_types:
-            raise ValueError(
-                f"Invalid date type: '{date_type}'. Must be one of: {list(self.valid_date_types.keys())}"
-            )
-        super().set_date_range(start_date, end_date)
-        self.date_type = date_type
+    def set_date_range(self, date_type, start_date, end_date):
+       
+       """
+       Sets a date range filter for the search.
+
+       :param date_type: Type of date to filter by (must be in `valid_date_types dictionary`).
+       :param start_date: Start of the date range, as a string in ddmmyyyy format.
+       :param end_date: End of the date range, as a string in ddmmyyyy format. Same as start_date when looking for a specific day.
+       """
+       
+       if date_type not in self.valid_date_types:
+           raise ValueError(
+               f"Invalid date type: '{date_type}'. Must be one of: {list(self.valid_date_types.keys())}"
+               )
+       super().set_date_range(start_date, end_date)
+       self.date_type = date_type
 
     # search by theme
     def set_theme (self, EUROVOC_descriptor):
+
+        """
+        Filters documents by EUROVOC labels.
+        :param EUROVOC_descriptor: A string identifier for the theme a document belongs to.
+        """
+
         self.theme = EUROVOC_descriptor
 
     def build(self):
+
+        """
+        Construct the final search URL based on all the parameters set.
+
+        Returns:
+            A string containing the complete, encoded EUR-Lex advanced search link.
+        """
+
         url = self.BASE_URL + '&lang=en&type=advanced'  # add static parameters
 
         # collection

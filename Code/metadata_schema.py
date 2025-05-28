@@ -5,6 +5,16 @@ from datetime import datetime
 import json
 
 def get_standard_metadata_template():
+
+    """
+    Returns a standardized metadata template that unifies metadata fields across the EUR-Lex, EEA and Europarl websites.
+
+    This schema is filled in by running the `standardize_metadata_x.py` files, 
+    which is done in the `extract_metadata` functions that are in every scraper class of the mentioned websites.
+    """
+
+
+
     return {
         "id": None,                                # e.g., CELEX number or document title
         "title": None,                             # Title of the document (Europarl)
@@ -25,9 +35,14 @@ def get_standard_metadata_template():
     }
 
 def save_metadata_to_file(metadata_dict, filename):
+    """
+    Used at the end of the `extract_metadata` functions that are in every scraper class (except the one of European Commission)
+    Saves the metadata dictionary, that is made to follow the standard schema, to a JSON file. 
+    """
     try:
         with open(filename, "w", encoding="utf-8") as f:
             json.dump(metadata_dict, f, indent=4, ensure_ascii=False)
         print(f"Metadata saved to {filename}")
     except Exception as e:
         print(f"Failed to write metadata to {filename}: {e}")
+

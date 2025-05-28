@@ -1,9 +1,17 @@
+"""Promting user for criteria. Searching and scraping based on those"""
+
 import os
 from file_utils import FileManager
 from european_commission.european_commission_search import EuropeanCommissionSearch
 from european_commission.european_commission_scraper import EuropeanCommissionScraper
 
 def scrape_docs():
+
+    """
+    Asks the user for search criteria and destination folder.
+    Then uses `EuropeanCommissionSearch` to build a search URL based on user input, and `EuropeanCommissionScraper` to scrape the found documents.
+    Downloaded files are organized into the right folders using the `FileManager` class.  
+    """
 
     text = input("Enter search text: ")
     period = input("Enter time period: ")
@@ -36,6 +44,7 @@ def scrape_docs():
     FileManager.move_files_to_folders(os.listdir(), folder_structure['file_mapping'])
 
     print(f"Scraped files saved in: {folder_path}")
+    
 
 
 

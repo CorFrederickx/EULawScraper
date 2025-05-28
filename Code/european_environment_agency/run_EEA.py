@@ -1,3 +1,5 @@
+"""Promting user for criteria. Searching and scraping based on those"""
+
 import os
 from file_utils import FileManager
 from scraper import BaseScraper
@@ -5,6 +7,12 @@ from european_environment_agency.EEA_search import EEASearch
 from european_environment_agency.EEA_scraper import EEAScraper
 
 def scrape_docs():
+
+    """
+    Asks the user for search criteria and destination folder.
+    Then uses `EEASearch` to build a search URL based on user input, and `EEAScraper` to scrape the found documents and corresponding metadata.
+    Downloaded files and their metadata are organized into the right folders using the `FileManager` class.  
+    """
 
     text = input("Enter search text: ")
     content_types = input("Enter content types: ")

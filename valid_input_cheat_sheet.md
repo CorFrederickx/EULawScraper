@@ -61,7 +61,7 @@ The `:`is meant as a separator between parameter and an informative description
 
 ## European Commission
 
-### Dates
+### Time periods
 - \* : All  
 - -7 : Last week  
 - -31 : Last month  

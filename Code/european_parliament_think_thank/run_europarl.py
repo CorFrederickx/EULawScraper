@@ -1,9 +1,17 @@
+"""Promting user for criteria. Searching and scraping based on those"""
+
 import os
 from file_utils import FileManager
 from european_parliament_think_thank.europarl_search import EuroparlSearch
 from european_parliament_think_thank.europarl_scraper import EuroparlScraper
 
 def scrape_docs ():
+
+    """
+    Asks the user for search criteria and destination folder.
+    Then uses `EuroparlSearch` to build a search URL based on user input, and `EuroparlScraper` to scrape the found documents and corresponding metadata.
+    Downloaded files and their metadata are organized into the right folders using the `FileManager` class.  
+    """
     
     text = input("Enter search text: ")
     start_date = input("Enter a start date (DDMMYYYY): ")

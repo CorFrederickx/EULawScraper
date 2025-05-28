@@ -1,6 +1,10 @@
+"""mimicking the Advanced Search of the European Commission search"""
+
 from search import BaseSearchURL
 
 class EuropeanCommissionSearch(BaseSearchURL):
+
+    """Class for building search URLs. Builds on the abstract base class BaseSearchURL"""
 
     valid_dates = {
         '*': 'All',

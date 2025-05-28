@@ -13,12 +13,16 @@ def run_with_inputs(func, inputs):
     with patch("builtins.input", lambda _: next(inputs_iter)):
         func()
 
-# instead of a user making choices, every module is run with fixed parameters
-# because it does not require user interaction it can be scheduled to run on a server at set times
-# scheduling can be done by adding a cron job to your crontab file (when working on a Unix based system)
-# For example, after using 'crontab -e' to edit your crontab file, you can enter the command: '0 3 * * * /usr/bin/python3 /path/to/your/run_daily.py' to run your file daily at 3AM. 
-
 def main():
+
+    """
+    Runs the scraping modules for all websites with pre-defined inputs, avoiding user interaction.
+
+    This allows the scraping process to run automatically, for example via `cron` (on Unix-based systems) at regular times without manual intervention.
+
+    An example crontab entry for daily execution at 3 AM would be:
+        0 3 * * * /usr/bin/python3 /path/to/this_script.py
+    """
 
     eurlex_inputs = [
         "LEGISLATION",                   # collection(s)

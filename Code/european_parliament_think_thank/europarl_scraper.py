@@ -154,31 +154,30 @@ class EuroparlScraper(BaseScraper):
         standard_metadata_dict = standardize_metadata(metadata_dict)
         save_metadata_to_file(standard_metadata_dict, "metadata_europarl.json")
 
-    def scrape_documents(self, document_urls):
+    def extract_filename_and_id(self, url):
+        """
+        Extracts the filename and document ID from a given URL.
+        Assumes filename is the last part of the URL path and the document ID is the second part when split by '_'.
+        """
+        parsed_url = urlparse(url)
+        filename = os.path.basename(parsed_url.path)
+        parts = filename.split('_')
+        document_id = parts[1] if len(parts) > 1 else None
+        return filename, document_id
 
+
+    def scrape_documents(self, document_urls):
         for url in document_urls:
             soup = self.get_soup(url)
             if soup:
-                # extract filename from URL
-                parsed_url = urlparse(url)
-                path = parsed_url.path
-                filename = os.path.basename(path)
-                document_id = filename.split('_')[1]
+                filename, document_id = self.extract_filename_and_id(url)
 
                 if document_id in self.seen_document_ids:
                     print(f"Skipping duplicate document (ID: {document_id}) - {filename}")
                     continue
 
                 self.seen_document_ids.add(document_id)
-
-            try:
-                file_response = self.fetch_response(url)
-                file_response.raise_for_status()
-                with open(filename, "wb") as f:
-                    f.write(file_response.content)
-
-            except Exception as e:
-                print(f"Failed to download {url}: {e}") 
+                self.download_file(url, filename)
 
 
         
