@@ -1,8 +1,8 @@
-
-# a function to store all according to a unified schema
-
+import logging
 from datetime import datetime
 import json
+
+logger = logging.getLogger(__name__)
 
 def get_standard_metadata_template():
 
@@ -42,7 +42,7 @@ def save_metadata_to_file(metadata_dict, filename):
     try:
         with open(filename, "w", encoding="utf-8") as f:
             json.dump(metadata_dict, f, indent=4, ensure_ascii=False)
-        print(f"Metadata saved to {filename}")
+        logger.info(f"Metadata saved to {filename}")
     except Exception as e:
-        print(f"Failed to write metadata to {filename}: {e}")
+        logger.error(f"Failed to write metadata to {filename}: {e}")
 

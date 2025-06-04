@@ -24,6 +24,14 @@ class EuroparlScraper(BaseScraper):
         """
 
         return False
+    
+    def create_driver(self):
+
+        """
+        Returns None since this scraper does not require a WebDriver.
+        """
+
+        return None
 
     def has_pagination(self):
 
@@ -67,10 +75,10 @@ class EuroparlScraper(BaseScraper):
         try:
             with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
                 tmp_file.write(content)
-                print(f"Saved temporary file: {tmp_file.name}")
+                self.logger.info(f"Saved temporary file: {tmp_file.name}")
                 return tmp_file.name
         except Exception as e:
-            print(f"Error saving PDF to temporary file: {e}")
+            self.logger.exception(f"Error saving PDF to temporary file: {e}")
             return None
         
     def open_pdf_from_url(self, url):
@@ -130,7 +138,7 @@ class EuroparlScraper(BaseScraper):
             if pdf_path and os.path.exists(pdf_path):
                 os.remove(pdf_path)
         except Exception as e:
-            print(f"Removal failed: {e}")
+            self.logger.exception(f"Removal failed: {e}")
 
 
     def collect_document_urls(self, url, driver=None):
@@ -150,7 +158,7 @@ class EuroparlScraper(BaseScraper):
         try:
             return self.extract_pdf_links(pdf_document)
         except Exception as e:
-            print(f"Error while processing PDF: {e}")
+            self.logger.exception(f"Error while processing PDF: {e}")
             return []
         finally:
             self.remove_temporary_pdf(pdf_document, pdf_path)
@@ -275,7 +283,7 @@ class EuroparlScraper(BaseScraper):
                 filename, document_id = self.extract_filename_and_id(url)
 
                 if document_id in self.seen_document_ids:
-                    print(f"Skipping duplicate document (ID: {document_id}) - {filename}")
+                    self.logger.info(f"Skipping duplicate document (ID: {document_id}) - {filename}")
                     continue
 
                 self.seen_document_ids.add(document_id)

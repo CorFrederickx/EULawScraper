@@ -1,5 +1,5 @@
-""""""
 
+import logging
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse, parse_qs
@@ -8,6 +8,8 @@ import json
 from scraper import BaseScraper
 from .standardize_metadata_eurlex import standardize_metadata
 from metadata_schema import save_metadata_to_file
+
+logger = logging.getLogger(__name__)
 
 class EurLexScraper(BaseScraper):
 
@@ -23,6 +25,14 @@ class EurLexScraper(BaseScraper):
         """
 
         return False
+    
+    def create_driver(self):
+
+        """
+        Returns None since this scraper does not require a WebDriver.
+        """
+
+        return None
 
     def has_pagination(self):
 
@@ -220,7 +230,7 @@ class EurLexScraper(BaseScraper):
             celex_number = self.extract_celex_number_from_url(url)
 
             if not celex_number:
-                print(f"Skipping document (CELEX number not found): {url}")
+                self.logger.error(f"Skipping document (CELEX number not found): {url}")
                 continue
             
             with open(f"{celex_number}.html", "w", encoding="utf-8") as f:

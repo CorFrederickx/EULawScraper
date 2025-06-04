@@ -1,11 +1,14 @@
 """Promting user for criteria. Searching and scraping based on those"""
 
+import logging
 import os
 from file_utils import FileManager
 from european_commission.european_commission_search import EuropeanCommissionSearch
 from european_commission.european_commission_scraper import EuropeanCommissionScraper
 
 def scrape_docs():
+
+    logger = logging.getLogger(__name__)
 
     """
     Asks the user for search criteria and destination folder.
@@ -30,10 +33,10 @@ def scrape_docs():
     search.set_format(format)
     
     base_url = search.build()
-    print(f'the search results page is: {base_url}')
+    logger.info(f'the search results page is: {base_url}')
 
     scraper = EuropeanCommissionScraper(base_url)
-    scraper.run()
+    scraper()
 
     folder_structure = {
         'folders': [pdf_folder, doc_folder, xlsx_folder, txt_folder, ppt_folder],
@@ -43,7 +46,7 @@ def scrape_docs():
     FileManager.create_folders(folder_structure['folders'])
     FileManager.move_files_to_folders(os.listdir(), folder_structure['file_mapping'])
 
-    print(f"Scraped files saved in: {folder_path}")
+    logger.info(f"Scraped files saved in: {folder_path}")
     
 
 

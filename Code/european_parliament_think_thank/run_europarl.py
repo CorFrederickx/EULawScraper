@@ -1,5 +1,6 @@
 """Promting user for criteria. Searching and scraping based on those"""
 
+import logging
 import os
 from file_utils import FileManager
 from european_parliament_think_thank.europarl_search import EuroparlSearch
@@ -12,6 +13,8 @@ def scrape_docs ():
     Then uses `EuroparlSearch` to build a search URL based on user input, and `EuroparlScraper` to scrape the found documents and corresponding metadata.
     Downloaded files and their metadata are organized into the right folders using the `FileManager` class.  
     """
+
+    logger = logging.getLogger(__name__)
     
     text = input("Enter search text: ")
     start_date = input("Enter a start date (DDMMYYYY): ")
@@ -26,10 +29,10 @@ def scrape_docs ():
     search.set_publication_type(publication_types)
     
     base_url = search.build()
-    print(f'the search results page is: {base_url}')
+    logger.info(f'the search results page is: {base_url}')
 
     scraper = EuroparlScraper(base_url)
-    scraper.run()
+    scraper()
 
     folder_structure = {
         'folders': [folder_path, metadata_path],
@@ -39,7 +42,7 @@ def scrape_docs ():
     FileManager.create_folders(folder_structure['folders'])
     FileManager.move_files_to_folders(os.listdir(), folder_structure['file_mapping'])
 
-    print(f"Scraped files saved in: {folder_path}")
+    logger.info(f"Scraped files saved in: {folder_path}")
 
 
 

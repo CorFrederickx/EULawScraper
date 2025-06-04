@@ -1,10 +1,11 @@
 """Promting user for criteria. Searching and scraping based on those"""
-
+import logging
 import os
 from file_utils import FileManager
-from scraper import BaseScraper
 from eur_lex.eur_lex_search import EurLexSearch
 from eur_lex.eur_lex_scraper import EurLexScraper
+
+logger = logging.getLogger(__name__)
 
 def scrape_docs():
 
@@ -27,10 +28,10 @@ def scrape_docs():
     search.set_date_range('ALL', start_date, end_date)
     
     base_url = search.build()
-    print(f'the search results page is: {base_url}')
+    logger.info(f'the search results page is: {base_url}')
 
     scraper = EurLexScraper(base_url)
-    scraper.run()
+    scraper()
 
     folder_structure = {
         'folders': [folder_path, metadata_path],
@@ -40,4 +41,4 @@ def scrape_docs():
     FileManager.create_folders(folder_structure['folders'])
     FileManager.move_files_to_folders(os.listdir(), folder_structure['file_mapping'])
 
-    print(f"Scraped files saved in: {folder_path}")
+    logger.info(f"Scraped files saved in: {folder_path}")

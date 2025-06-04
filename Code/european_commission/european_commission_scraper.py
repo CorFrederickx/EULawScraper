@@ -1,4 +1,4 @@
-
+import logging
 import re
 import requests
 from bs4 import BeautifulSoup
@@ -7,6 +7,8 @@ from urllib.parse import urljoin, urlparse, parse_qs
 from scraper import BaseScraper
 
 class EuropeanCommissionScraper(BaseScraper):
+
+    logger = logging.getLogger(__name__)
 
     """
     Class for scraping documents from the European Commission website, extending BaseScraper.
@@ -20,6 +22,14 @@ class EuropeanCommissionScraper(BaseScraper):
         """
 
         return False
+    
+    def create_driver(self):
+
+        """
+        Returns None since this scraper does not require a WebDriver.
+        """
+
+        return None
 
     def has_pagination(self):
 
@@ -77,7 +87,7 @@ class EuropeanCommissionScraper(BaseScraper):
         else:
             paginated_urls.append(self.base_url.replace('&page=', '&page=2'))
 
-        print(paginated_urls)
+        self.logger.info(paginated_urls)
         return paginated_urls
 
     
@@ -126,7 +136,7 @@ class EuropeanCommissionScraper(BaseScraper):
         for url in document_urls:
             filename = self.extract_filename_from_url(url)
             if not filename:
-                print(f"Filename not found in URL: {url}")
+                self.logger.info(f"Filename not found in URL: {url}")
                 continue
             self.download_file(url, filename)
 

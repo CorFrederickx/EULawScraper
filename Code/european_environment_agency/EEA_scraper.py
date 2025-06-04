@@ -1,5 +1,5 @@
 
-
+import logging
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse, parse_qs
@@ -13,6 +13,8 @@ from .standardize_metadata_eea import standardize_metadata
 from metadata_schema import save_metadata_to_file
 
 class EEAScraper(BaseScraper):
+
+    logger = logging.getLogger(__name__)
 
     """
     Scraper class for extracting HTML documents and metadata from the European Environment Agency website, extending BaseScraper.
@@ -90,7 +92,7 @@ class EEAScraper(BaseScraper):
             return paginated_urls
 
         except Exception as e:
-            print(f"Just a single page: {e}")
+            self.logger.exception(f"Just a single page: {e}")
             return [self.base_url]  # fallback to just the first page
 
     
@@ -116,7 +118,7 @@ class EEAScraper(BaseScraper):
 
         h3_tags = soup.find_all('h3') # <h3> headers typically point to individual document pages
         if not h3_tags:
-            print("No 'h3' tags with class 'listing-header' found on this page.")
+            self.logger.error("No 'h3' tags with class 'listing-header' found on this page.")
         else:
             for h3 in h3_tags:
                 a_tag = h3.find('a', href=True)
@@ -126,7 +128,7 @@ class EEAScraper(BaseScraper):
                     unique_urls.add(href)
 
         if not unique_urls:
-            print("No document URLs found on this page.")
+            self.logger.info("No document URLs found on this page.")
 
         return list(unique_urls)
     
@@ -233,7 +235,7 @@ class EEAScraper(BaseScraper):
         for url in document_urls:
             soup = self.get_soup(url)
             if not soup:
-                print(f"Skipping (no soup returned): {url}")
+                self.logger.info(f"Skipping (no soup returned): {url}")
                 continue
 
             # last part of the URL as filename

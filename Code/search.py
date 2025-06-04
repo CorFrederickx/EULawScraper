@@ -1,8 +1,8 @@
 """mimicking the search engines of several official European Union websites """
 
-import abc
+from abc import ABC, abstractmethod
 
-class BaseSearchURL(abc.ABC):
+class BaseSearchURL(ABC):
 
     """Abstract base class for building search URLs"""
 
@@ -41,7 +41,7 @@ class BaseSearchURL(abc.ABC):
         for language in languages.split():
             self.languages.append(language)
 
-    @abc.abstractmethod
+    @abstractmethod
     def build(self):
 
         """making sure there is a build method implemented in the subclass"""
