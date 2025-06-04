@@ -14,6 +14,7 @@ class BaseScraper():
 
         :param base_url: The URL of the search results page that was build by the BaseSearchURL class.
         """
+
         self.base_url = base_url
         self.headers = {"User-Agent": "Mozilla/5.0"}
     
@@ -21,7 +22,9 @@ class BaseScraper():
         
     def fetch_response(self, url):
 
-        """Fetches and returns the HTTP response object for a given URL. If the request fails, it returns None"""
+        """
+        Fetches and returns the HTTP response object for a given URL. If the request fails, it returns None
+        """
 
         try:
             response = requests.get(url, headers=self.headers)
@@ -35,7 +38,7 @@ class BaseScraper():
 
         """
         If the HTTP response object of given URL is valid, the content of the response is returned. If not, an empty list is returned.
-        Used in europarl_scraper.py, where content consists of the binary data of a PDF.
+        Used in europarl_scraper.py, where content consists of text in a PDF.
         """
 
         response = self.fetch_response(url)
@@ -45,7 +48,9 @@ class BaseScraper():
     
     def get_soup(self, url):
 
-        """Turns the HTTP response object of given URL into a BeautifulSoup object for parsing HTML content."""
+        """
+        Turns the HTTP response object of given URL into a BeautifulSoup object for parsing HTML content.
+        """
 
         response = self.fetch_response(url)
         if response:
@@ -57,7 +62,7 @@ class BaseScraper():
         """
         Downloads a file from given URL and saves it locally under given filename.
         If successful, a confirmation message is printed. Any error occuring is catched as an exception and an error message is printed.
-        Used in european_commission_scraper.py only. (Should it be moved there?)
+        Used in european_commission_scraper.py only.
         """
 
         try:
@@ -69,25 +74,14 @@ class BaseScraper():
             print(f"Failed to download {filename}: {e}")
 
 
-    # two functions that combine all functions in a scraper class:
-
-    """It initializes a web driver if needed,
-    collects URLs from paginated pages, gathers all document URLs, and optionally scrapes the documents.
-    It ensures that the web driver is properly closed after the process is complete.
-
-    Args:
-        scrape (bool, optional): A flag indicating whether to perform the scraping of documents.
-                                Defaults to True.
-
-    Returns:
-        None
-    """
+    # two functions that combine the different steps in the scraper classes:
 
     def run(self, scrape=True):
+
         """
         Executes the scraping process.
-        Initializes a webdriver, collects URLs from paginated pages and URLs of all documents on those pages and associated metadata. The documents are the scraped.
-        Whether a step in this process is necessary is defined by sub-class functions:
+        Initializes a webdriver, collects URLs from paginated pages and URLs of all documents on those pages and associated metadata. The documents are then scraped.
+        Whether a step in this process is necessary is defined by sub-class functions found in all scraper classes:
             - uses_driver()
             - has_pagination()
             - extracts_metadata()
