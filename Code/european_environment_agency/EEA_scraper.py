@@ -14,40 +14,78 @@ from metadata_schema import save_metadata_to_file
 
 class EEAScraper(BaseScraper):
 
+    """
+    Scraper class for extracting HTML documents and metadata from the European Environment Agency website, extending BaseScraper.
+    """
+
     # functions that determine how 'run' function in BaseClass is used
     def uses_driver(self):
+
+        """
+        Indicates whether a WebDriver is required for scraping.
+        The EEA website does indeed require a WebDriver.
+        """
+
         return True
     
     def create_driver(self):
+
+        """
+        Returns a Selenium Chrome WebDriver instance for scraping dynamic EEA content.
+        """
+
         return webdriver.Chrome()
 
     def has_pagination(self):
+
+        """
+        Indicates whether the search results are paginated.
+        Pagination is present.
+        """
+
         return True
 
     def extracts_metadata(self):
+
+        """
+        Indicates whether metadata extraction is supported.
+        EEA supports metadata extraction.
+        """
+
         return True
 
     def __init__(self, base_url):
+
+        """
+        Initializes an EEAScraper instance and prepares metadata storage.
+
+        :param base_url: The base URL of the EEA search results page.
+        """
+
         super().__init__(base_url)
 
         self.metadata_list = []
     
     def get_pagination_urls(self, driver):
 
+        """
+        Navigates through the EEA website using the given WebDriver: 
+        Clicks the 'Last page' button to reveal the total number of result pages, 
+        then constructs URLs for each page and returns them as a list. 
+        Returns only the base URL if no last 'Last Page' button is found.
+        """
+
         driver.get(self.base_url)
         time.sleep(5) 
 
         try:
-            # click the "Last page" button to reveal total number of pages
             last_page_btn = driver.find_element("css selector", "button[title='Last page']")
             last_page_btn.click()
             time.sleep(5) 
 
-            # find the active page number (which is thus the last one)
             active_page_btn = driver.find_element("css selector", "button.pagination-item.active")
             total_pages = int(active_page_btn.text.strip())
 
-            # Generate all paginated URLs based on base_url and total_pages
             paginated_urls = [f"{self.base_url}&page={page}" for page in range(1, total_pages + 1)]
             return paginated_urls
 
@@ -57,6 +95,13 @@ class EEAScraper(BaseScraper):
 
     
     def collect_document_urls(self, url, driver):
+
+        """
+        Extracts document URLs from a given search result page using the WebDriver, and returns them as a list.
+        
+        :param url: A search results page URL
+        :param driver: A Selenium WebDriver instance
+        """
 
         driver.get(url)
         time.sleep(5)
@@ -69,7 +114,7 @@ class EEAScraper(BaseScraper):
         
         unique_urls = set()
 
-        h3_tags = soup.find_all('h3')
+        h3_tags = soup.find_all('h3') # <h3> headers typically point to individual document pages
         if not h3_tags:
             print("No 'h3' tags with class 'listing-header' found on this page.")
         else:
@@ -80,13 +125,21 @@ class EEAScraper(BaseScraper):
                     # print(f"Found URL: {href}")
                     unique_urls.add(href)
 
-        # check if unique_urls contains any links
         if not unique_urls:
             print("No document URLs found on this page.")
 
         return list(unique_urls)
     
     def parse_result_block(self, block):
+
+        """
+        Parses a metadata <div> block containing fields such as 'Topics', 'Source', 'Source URL', and 'Date'
+        into a dictionary of key-value pairs.
+
+        :param block: A BeautifulSoup <div> element containing metadata
+        :return: A dictionary of extracted metadata
+        """
+
         metadata = {}
         info_divs = block.find_all('div', class_='result-info')
 
@@ -111,6 +164,15 @@ class EEAScraper(BaseScraper):
         return metadata
     
     def parse_title_metadata(self, block):
+
+        """
+        Parses a metadata <div> block containing title-related metadata,
+        such as 'Title text', 'Document URL or whether the document is labeled as 'new', into a dictionary of key-value pairs.
+
+        :param block: A BeautifulSoup <div> element containing metadata
+        :return: A dictionary of extracted metadata
+        """
+
         metadata = {}
         title_tag = block.find_previous('h3', class_='listing-header')
         if title_tag:
@@ -126,6 +188,15 @@ class EEAScraper(BaseScraper):
 
 
     def extract_metadata(self, url, driver):
+
+        """
+        Combines `parse_result_block` and `parse_title_metadata` to extract metadata from an EEA search results page.
+        The metadata is then standardized and saved to a local file named 'metadata_eea.json'.
+
+        :param url: The URL of the search result page to extract metadata from
+        :param driver: A Selenium WebDriver instance
+        """
+        
         driver.get(url)
         time.sleep(5)
 
@@ -153,22 +224,26 @@ class EEAScraper(BaseScraper):
 
     def scrape_documents(self, document_urls):
 
+        """
+        Downloads and saves the HTML content of documents listed in the provided URLs.
+
+        :param document_urls: List of URLs pointing to individual documents
+        """
+
         for url in document_urls:
             soup = self.get_soup(url)
             if not soup:
                 print(f"Skipping (no soup returned): {url}")
                 continue
 
-            # extract the last part of the URL path to use as filename
+            # last part of the URL as filename
             parsed_url = urlparse(url)
             path_parts = parsed_url.path.rstrip('/').split('/')
             filename_base = path_parts[-1] if path_parts else "document"
 
-            # clean filename if needed
             safe_filename = "".join(c if c.isalnum() or c in "-_." else "_" for c in filename_base)
             filepath = os.path.join(".", f"{safe_filename}.html")
 
-            # write as a HTML file in the current directory
             with open(filepath, "w", encoding="utf-8") as f:
                 f.write(soup.prettify())
 

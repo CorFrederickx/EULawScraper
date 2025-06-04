@@ -28,7 +28,7 @@ class FileManager:
         """
         Moves the scraped files to the right folders based on their file extensions.
 
-        :param files (list): A list of file paths to be moved.
+        :param files (list): A list of file to be moved.
         :param folder_mapping: A dictionary mapping file extensions to folder paths.
         
         """

@@ -1,10 +1,12 @@
-"""mimicking the Advanced Search of the European Commission search"""
+"""mimicking European Commission search"""
 
 from search import BaseSearchURL
 
 class EuropeanCommissionSearch(BaseSearchURL):
 
-    """Class for building search URLs. Builds on the abstract base class BaseSearchURL"""
+    """
+    Class for building search URLs for the European Commission's search interface, extending BaseSearchURL.
+    """
 
     valid_dates = {
         '*': 'All',
@@ -51,41 +53,72 @@ class EuropeanCommissionSearch(BaseSearchURL):
     }
 
     def __init__(self):
+
+        """
+        Initialize an instance of the URL builder with the European Commission search base URL.
+        All search parameters are initialized as None.
+        """
+
         super().__init__(base_url='https://ec.europa.eu/search/?')
-        # is the self.base_url part missing here? like its now only works if base class is used for everything (I think?)
         self.date = None
         self.language = None
         self.format = None
 
     def set_date (self, date='*'):
+
+        """
+        Applies a date filter to the search results.
+        If chosen date filter is not valid, an error is raised.
+
+        :param date: Key from valid_dates. Can be '*', '-7', '-31', or '-365'.
+        """
+
         if date not in self.valid_dates:
              raise ValueError(f"Invalid type: '{date}'. Must be one of: {list(self.valid_dates.keys())}")
         self.date = date
 
     def set_language (self, language='en'):
+
+        """
+        Applies a language filter to the search results.
+        If chosen language is not valid, an error is raised.
+
+        :param language: Key from valid_languages.
+        """
+
         if language not in self.valid_languages:
             raise ValueError(f"Invalid type: '{language}'. Must be one of: {list(self.valid_languages.keys())}")
         self.language = language
 
     def set_format (self, format='*'):
+
+        """
+        Applies a file format filter to the search results.
+        If chosen file format is not valid, an error is raised.
+
+        :param format: Key from valid_formats indicating preferred document format.
+        """
+
         if format not in self.valid_formats:
             raise ValueError(f"Invalid type: '{format}'. Must be one of: {list(self.valid_formats.keys())}")
         self.format = format
 
     def build(self):
+
+        """
+        Constructs the final URL string using all the parameters set so far.
+
+        :return: A fully-formed search URL for the European Commission website.
+        """
+
         url = self.BASE_URL
-
-        url += f'queryText={"+".join(self.text)}' # impossible to do a search without text
-        url += '&query_source=europa_default&page=&filter=&swlang=en&filterSource=europa_default' # static part of the url
-
+        url += f'queryText={"+".join(self.text)}'
+        url += '&query_source=europa_default&page=&filter=&swlang=en&filterSource=europa_default' # static parameters
         if self.date is not None:
             url += f'&more_options_date={self.date}'
-        
         if self.language is not None:
             url += f'&more_options_language={self.language}'
-        
         if self.format is not None:
             url += f'&more_options_f_formats={self.format}'
-
         return url
     

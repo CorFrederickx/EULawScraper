@@ -2,9 +2,9 @@
 
 from search import BaseSearchURL
 
-class GetAdvancedSearchURL(BaseSearchURL):
+class EurLexSearch(BaseSearchURL):
     
-    """Class for building search URLs. Builds on the abstract base class BaseSearchURL"""
+    """Class for building search URLs for Eur-Lex's advanced search, extending BaseSearchURL"""
 
     valid_collections = {
         # EU law and case-law
@@ -67,8 +67,7 @@ class GetAdvancedSearchURL(BaseSearchURL):
 
         """
         Initialize an instance of the URL builder with the EUR-Lex Advanced Search base URL
-
-        This sets up all possible search parameters as None or empty lists, ready to be set using the following functions.
+        All search parameters are set to their default (None or empty lists).
         """
 
         super().__init__(base_url='https://eur-lex.europa.eu/search.html?')
@@ -87,17 +86,14 @@ class GetAdvancedSearchURL(BaseSearchURL):
         self.CELEX_number = None
         self.date_type = None
         self.theme = None
-        #self.document_languages = []
     
-    # collection
     def set_collection(self, collection: str):
 
         """
-        Checks if the collection you want to search in belongs to the valid options. These are listed in the above valid_collections dictionary, also in the cheatsheet.
-        If not valid, an error is raised.
-        If valid, the right domain is also set, based on the chosen collection.
+        Sets a single collection to search in. Also sets the domain (EU or national law).
+        If the chosen collection is not a valid option, an error is raised.
 
-        :param collection: The collection you want to search in.
+        :param collection: Key from valid_collections.
         """
 
         if collection not in self.valid_collections:
@@ -108,10 +104,10 @@ class GetAdvancedSearchURL(BaseSearchURL):
     def set_multiple_collections(self, collections: list[str]):
 
         """
-        Checks if the collections you want to search in belong to the valid options. These are listed in the above valid_collections dictionary, also in the cheatsheet.
-        If not valid, an error is raised.
+        Adds multiple valid collections to the search.
+        If the chosen collections are not valid options, an error is raised.
 
-        :param collections: A python list of multiple collections to search within. 
+        :param collections: A list of keys from valid_collections.
         """
 
         for collection in collections:
@@ -119,15 +115,13 @@ class GetAdvancedSearchURL(BaseSearchURL):
                 raise ValueError(f"Invalid collection: '{collection}'. Must be one of: {list(self.valid_collections.keys())}")
             self.collections.append(collection)
 
-
-    # text search:
-    def set_first_text(self, text, scope='ti-te'):
+    def set_first_text(self, text: str, scope='ti-te'):
 
         """
-        Defines the search text and its scope (title, text, or both). Special characters like quotes and question marks are URL-encoded.
+        Defines the primary search text and its scope.
 
-        :param text: Search terms (use quotation marks for exact match, '?' or '*' for wildcards).
-        :param scope: Where to search: in the title ('ti'), text ('te') or both ('ti-te')
+        :param text: Terms to search (supporting exact matches denoted by quotation marks, and wildcards like '?' or '*').
+        :param scope: Where to search: 'ti' (title), 'te' (text) or 'ti-te' (both).
         """
 
         for term in text.split():
@@ -139,14 +133,14 @@ class GetAdvancedSearchURL(BaseSearchURL):
             self.text_params_0.append(encoded_term)
         self.text_scope_0 = scope
 
-    def set_extra_text(self, text, boolean_operator='and', scope='ti-te'):
+    def set_extra_text(self, text: str, boolean_operator='and', scope='ti-te'):
 
         """
-        Defines additional search text to refine the query. Works in combination with the first search text, connected by a boolean operator.
+        Defines additional search text, joined to the first by a boolean operator.
 
-        :param text: Additional search terms.
-        :param boolean_operator: Logical connector between first and extra text ('and', 'or', 'not').
-        :param scope: Search scope (title, text, or both). Same options as `set_first_text`.
+        :param text: Additional search terms (supporting exact matches denoted by quotation marks, and wildcards like '?' or '*').
+        :param boolean_operator: Logical connectors 'and', 'or', 'not'.
+        :param scope: 'ti', 'te' or 'ti-te'.
         """
 
         for term in text.split():
@@ -159,42 +153,58 @@ class GetAdvancedSearchURL(BaseSearchURL):
         self.boolean_operator = boolean_operator
         self.text_scope_1 = scope
     
-    # document reference
     def set_document_year (self, year: int):
-        """
-        Sets the year of the document.
 
-        :param year: A four-digit integer representing the document's year.
         """
+        Sets the preferred publication year.
+
+        :param year: Four digit integer.
+        """
+
         self.year = year
     
     def set_document_number (self, document_number: int):
+
+        """
+        Sets the document number.
+
+        :param document_number: Integer value of the document's identifier.
+        """
+
         self.document_number = document_number
 
-    def set_type_of_act(self, types_of_act: str):
+    def set_type_of_act(self, types_of_act: list):
+
+        """
+        Sets one or more types of legal acts to filter by.
+        If the chosen types of acts are not valid options, an error is raised.
+
+        :param types_of_act: List of keys from valid_types_of_act.
+        """
+
         for type in types_of_act:
             if type not in self.valid_types_of_act:
                 raise ValueError(f"Invalid type: '{type}'. Must be one of: {list(self.valid_types_of_act.keys())}")
             self.type_of_act.append(type)
 
-    # Author of the document
-    def set_author (self, author):
+    def set_author (self, author: str):
         """
-        Specifies the author of the document. Must match an author in the `valid_authors` dictionary.
+        Sets the authoring institution of the document. Must match an author in the `valid_authors` dictionary.
+        If the chose author is not valid, an error is raised.
 
-        :param author: A valid author as a string.
+        :param author: Key from valid_authors.
         """
 
         if author not in self.valid_authors:
             raise ValueError(f"Invalid author: '{author}'. Must be one of: {list(self.valid_authors.keys())}")
         self.author = author
 
-    # Search by CELEX number
     def set_CELEX_number (self, celex: str):
-        """
-        Sets the CELEX number to search for. Automatically URL-encodes '?' and appends an '*' if not present.
 
-        :param celex: CELEX number as a string.
+        """
+        Sets the CELEX number. Character '*' is added automatically if missing.
+
+        :param celex: CELEX identifier as a string.
         """
 
         if '?' in celex:
@@ -204,15 +214,15 @@ class GetAdvancedSearchURL(BaseSearchURL):
 
         self.CELEX_number = celex
     
-    # search by date
     def set_date_range(self, date_type, start_date, end_date):
        
        """
-       Sets a date range filter for the search.
-
-       :param date_type: Type of date to filter by (must be in `valid_date_types dictionary`).
-       :param start_date: Start of the date range, as a string in ddmmyyyy format.
-       :param end_date: End of the date range, as a string in ddmmyyyy format. Same as start_date when looking for a specific day.
+       Applies a date filter to the search results.
+       If chosen date filter is not valid, an error is raised.
+       
+       :param date_type: Key from valid_date_types.
+       :param start_date: Start of the date range in ddmmyyyy format.
+       :param end_date: End of the date range in ddmmyyyy format.
        """
        
        if date_type not in self.valid_date_types:
@@ -226,8 +236,8 @@ class GetAdvancedSearchURL(BaseSearchURL):
     def set_theme (self, EUROVOC_descriptor):
 
         """
-        Filters documents by EUROVOC labels.
-        :param EUROVOC_descriptor: A string identifier for the theme a document belongs to.
+        Filters search results by EUROVOC labels.
+        :param EUROVOC_descriptor: String label from the EUROVOC taxonomy.
         """
 
         self.theme = EUROVOC_descriptor
@@ -235,53 +245,33 @@ class GetAdvancedSearchURL(BaseSearchURL):
     def build(self):
 
         """
-        Construct the final search URL based on all the parameters set.
+        Constructs the final URL string using all the parameters set so far.
 
-        Returns:
-            A string containing the complete, encoded EUR-Lex advanced search link.
+        :return: A fully-formed EUR-Lex advanced search URL.
         """
 
-        url = self.BASE_URL + '&lang=en&type=advanced'  # add static parameters
-
-        # collection
+        url = self.BASE_URL + '&lang=en&type=advanced'  # static parameters
         if self.collection is not None:
             url += f'&SUBDOM_INIT={self.collection}&DTS_SUBDOM={self.collection}&DTS_DOM={self.domain}'
         if self.collections:
             url += f'&dom={"%2C".join(self.collections)}'
-            
-        # text
         if self.text_scope_0 and self.text_params_0:
             url += f'&textScope0={self.text_scope_0}&andText0={"+".join(self.text_params_0)}'
-
         if self.text_scope_1 and self.text_params_1:
             url += f'&textScope1={self.text_scope_1}&{self.boolean_operator}Text1={"+".join(self.text_params_1)}'
-
-        # document reference
         if self.year is not None:
             url += f'&DTA={self.year}'
         if self.document_number is not None:
             url += f'&DTN={self.document_number}'
         if self.type_of_act:
             url += f'&DB_TYPE_OF_ACT={"%2C".join(self.type_of_act)}'
-
-        # author of the document
         if self.author:
             url += f'&DB_AUTHOR={self.author}'
-
-        # CELEX number
         if self.CELEX_number:
             url += f'&or0=DN%3D{self.CELEX_number}%2C'
-
-        # date range
         if self.date_range and self.date_type:
             url += f'&date0={self.date_type}%3A{self.date_range[0]}%7C{self.date_range[1]}'
-
-        # theme
         if self.theme:
             url += f'&DC_CODED={self.theme}'
-
-        # language(s)
-        #if self.document_languages:
-        #   url += f'&wh0=andCOMPOSE%3D{"%3BCOMPOSE%3D".join(self.document_languages)}'
 
         return url

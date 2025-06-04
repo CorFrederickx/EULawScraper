@@ -3,14 +3,14 @@
 import os
 from file_utils import FileManager
 from scraper import BaseScraper
-from eur_lex.eur_lex_search import GetAdvancedSearchURL
+from eur_lex.eur_lex_search import EurLexSearch
 from eur_lex.eur_lex_scraper import EurLexScraper
 
 def scrape_docs():
 
     """
-    Asks the user for search criteria and destination folder.
-    Then uses `GetAdvancedSearchURL` to build a search URL based on user input, and `EurLexScraper` to scrape the found documents and corresponding metadata.
+    Asks the user for search criteria and a destination folder.
+    Then uses `EurLexSearch` to build a search URL based on user input, and `EurLexScraper` to scrape the found documents and corresponding metadata.
     Downloaded files and their metadata are organized into the right folders using the `FileManager` class.  
     """
 
@@ -21,7 +21,7 @@ def scrape_docs():
     folder_path = input("Enter folder to save files: ")
     metadata_path = input("Enter path for metadata file: ")
 
-    search = GetAdvancedSearchURL()
+    search = EurLexSearch()
     search.set_collection(collections)
     search.set_first_text(text)
     search.set_date_range('ALL', start_date, end_date)

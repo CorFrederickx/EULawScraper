@@ -11,11 +11,15 @@ from metadata_schema import save_metadata_to_file
 
 class EurLexScraper(BaseScraper):
 
-    # functions that determine how 'run' function in BaseClass is used
+    """
+    Scraper class for extracting HTML documents and metadata from the EurLex website, extending BaseScraper.
+    """
+
     def uses_driver(self):
 
         """
-        Indicates whether a WebDriver is required for scraping. EurLex does not require one.
+        Indicates whether a WebDriver is required for scraping. 
+        EurLex does not require one.
         """
 
         return False
@@ -23,7 +27,8 @@ class EurLexScraper(BaseScraper):
     def has_pagination(self):
 
         """
-        Indicates whether the EurLex results are paginated. Pagination is present.
+        Indicates whether the EurLex results are paginated. 
+        Pagination is present.
         """
 
         return True
@@ -31,7 +36,8 @@ class EurLexScraper(BaseScraper):
     def extracts_metadata(self):
 
         """
-        Indicates whether metadata can be extracted for each document. EurLex supports metadata extraction.
+        Indicates whether metadata can be extracted for each document. 
+        EurLex supports metadata extraction.
         """
          
         return True

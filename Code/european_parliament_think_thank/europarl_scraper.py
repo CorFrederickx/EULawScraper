@@ -10,23 +10,60 @@ from metadata_schema import save_metadata_to_file
 
 class EuroparlScraper(BaseScraper):
 
-    # functions that determine how 'run' function in BaseClass is used
+    """
+    Scraper class for extracting PDF documents and metadata from the Europarl website, extending BaseScraper.
+
+    Europarl is special in that a search results page consists of a PDF that lists all the found documents.
+    """
+
     def uses_driver(self):
+
+        """
+        Indicates whether a WebDriver is required for scraping.
+        Europarl does not require a WebDriver.
+        """
+
         return False
 
     def has_pagination(self):
+
+        """
+        Indicates whether the search results are paginated
+        Europarl pages are not paginated. Instead, all results are listed in one pdf document.
+        """
+
         return False
 
     def extracts_metadata(self):
+
+        """
+        Indicates whether metadata can be extracted for each document.
+        Europarl supports metadata extraction.
+        """
+
         return True
 
     def __init__(self, base_url):
+
+        """
+        Initializes a EuroparlScraper instance and prepares metadata storage.
+
+        :param base_url: The base URL for the Europarl search results page, which comes as a pdf itself.
+        """
+
         super().__init__(base_url)
         
         self.metadata_list = []
-        self.seen_document_ids = set()  # Set to track document IDs to avoid duplicates
+        self.seen_document_ids = set()  # set to track document IDs to avoid duplicates/translations when scraping
 
     def save_temporary_pdf(self, content):
+
+        """
+        Saves PDF content to a temporary file on disk and returns the path to this file, or None if saving fails.
+
+        :param content: Content of a PDF file.
+        """
+
         try:
             with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
                 tmp_file.write(content)
@@ -37,6 +74,14 @@ class EuroparlScraper(BaseScraper):
             return None
         
     def open_pdf_from_url(self, url):
+
+        """
+        Downloads the search results PDF from the given base URL,
+        saves it as a temporary file and opens it using PyMuPDF (fitz).
+
+        :return: Tuple of (PDF document object, file path) or (None, None) on failure.
+        """
+
         pdf_content = self.fetch_pdf_response(url)
         if not pdf_content:
             return None, None
@@ -53,6 +98,14 @@ class EuroparlScraper(BaseScraper):
             return None, None
     
     def extract_pdf_links(self, pdf_document):
+
+        """
+        Extracts direct PDF URLs embedded within the pages of an already opened PDF document.
+        
+        :param pdf_document: A PyMuPDF document object (opened and ready for reading).
+        :return: List of URLs (strings) found within the document that end in '.pdf'.
+        """
+
         document_urls = []
         for page_num in range(len(pdf_document)):
             page = pdf_document.load_page(page_num)
@@ -63,6 +116,14 @@ class EuroparlScraper(BaseScraper):
         return document_urls
     
     def remove_temporary_pdf(self, pdf_document, pdf_path):
+
+        """
+        Closes the temporary PDF document and removes it.
+
+        :param pdf_document: PyMuPDF document object.
+        :param pdf_path: Path to the temporary PDF file.
+        """
+
         try:
             if pdf_document:
                 pdf_document.close()
@@ -73,6 +134,13 @@ class EuroparlScraper(BaseScraper):
 
 
     def collect_document_urls(self, url, driver=None):
+
+        """
+        Downloads and opens a PDF from the given URL, then extracts embedded PDF links from it using `extract_pdf_links`.
+        
+        :param url: The web URL pointing to a PDF file that contains links to other PDFs.
+        :return: List of extracted PDF URLs found within the downloaded document.
+        """
 
         pdf_document, pdf_path = self.open_pdf_from_url(url)
 
@@ -90,11 +158,28 @@ class EuroparlScraper(BaseScraper):
     # extracting the metadata:
     
     def extract_pdf_lines(self, pdf_document, skip_lines=9):
+
+        """
+        Extracts text from a PDF document, skipping a specified number of header lines.
+
+        :param pdf_document: PyMuPDF document.
+        :param skip_lines: Number of lines to skip at the beginning.
+        :return: List of text lines from the document.
+        """
+
         full_text = "".join(page.get_text() for page in pdf_document)
         return full_text.strip().splitlines()[skip_lines:]
 
     
     def parse_metadata_from_lines(self, lines):
+
+        """
+        Parses metadata entries from a list of text lines.
+
+        :param lines: List of text lines extracted from a PDF.
+        :return: List of metadata dictionaries.
+        """
+
         metadata_list = []
         metadata = {}
 
@@ -134,6 +219,11 @@ class EuroparlScraper(BaseScraper):
 
     def extract_metadata(self, url, driver=None):
 
+        """
+        Extracts metadata from a PDF document located at the given URL,
+        then standardizes and saves it to a JSON file.
+        """
+
         pdf_document, pdf_path = self.open_pdf_from_url(url)
         if not pdf_document:
             return []
@@ -155,10 +245,15 @@ class EuroparlScraper(BaseScraper):
         save_metadata_to_file(standard_metadata_dict, "metadata_europarl.json")
 
     def extract_filename_and_id(self, url):
+        
         """
         Extracts the filename and document ID from a given URL.
-        Assumes filename is the last part of the URL path and the document ID is the second part when split by '_'.
+        Assumes the document ID is the second element when the filename is split by '_'.
+
+        :param url: The document URL.
+        :return: Tuple (filename, document_id).
         """
+
         parsed_url = urlparse(url)
         filename = os.path.basename(parsed_url.path)
         parts = filename.split('_')
@@ -167,6 +262,13 @@ class EuroparlScraper(BaseScraper):
 
 
     def scrape_documents(self, document_urls):
+
+        """
+        Downloads and saves PDF documents from a list of URLs, avoiding duplicates using document IDs.
+
+        :param document_urls: List of PDF download URLs.
+        """
+
         for url in document_urls:
             soup = self.get_soup(url)
             if soup:
