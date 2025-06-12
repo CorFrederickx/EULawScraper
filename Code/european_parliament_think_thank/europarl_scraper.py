@@ -41,6 +41,17 @@ class EuroparlScraper(BaseScraper):
         """
 
         return False
+    
+    
+    def get_pagination_urls(self, driver=None):
+
+        """
+        Europarl does not paginate search results, so this returns an empty list. (an empty list because this function always returns somehting iterable)
+        It is only implemented to fulfill the abstract base class requirement.
+        """
+
+        return []
+
 
     def extracts_metadata(self):
 

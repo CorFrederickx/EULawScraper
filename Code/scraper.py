@@ -2,6 +2,7 @@
 
 from abc import ABC, abstractmethod
 
+import os
 import logging
 
 import requests
@@ -109,11 +110,10 @@ class BaseScraper(ABC):
     def download_file(self, url, filename):
 
         """
-        Downloads a file from given URL and saves it locally under given filename.
+        Downloads a file from given URL and saves it locally under given filename inside a current directory.
         If successful, a confirmation is logged. Any error occuring is catched as an exception and also logged.
-        Used in european_commission_scraper.py only.
         """
-
+        
         response = self.fetch_response(url)
         if not response:
             self.logger.error(f"No response for {url}, skipping download.")
@@ -124,6 +124,7 @@ class BaseScraper(ABC):
             self.logger.info(f"Downloaded: {filename}")
         except OSError as e:
             self.logger.error(f"Failed to write file {filename}: {e}")
+
 
 
     def __call__(self):

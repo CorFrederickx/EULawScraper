@@ -1,5 +1,6 @@
 
 import logging
+import os
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse, parse_qs
@@ -232,8 +233,9 @@ class EurLexScraper(BaseScraper):
             if not celex_number:
                 self.logger.error(f"Skipping document (CELEX number not found): {url}")
                 continue
-            
+
             with open(f"{celex_number}.html", "w", encoding="utf-8") as f:
                 f.write(str(soup.prettify()))  # save HTML
+
             
 
