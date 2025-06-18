@@ -47,6 +47,14 @@ To run the scraper automatically once per day (e.g., on a server), you can use t
 
 When working on a Unix based system, scheduling can be done by adding a cron job to your crontab file. To edit your crontab file, first run `crontab -e`, then use the following line to run your file daily at 3AM: `0 3 * * * /usr/bin/python3 /path/to/your/run_daily.py`
 
+## Testing
+
+The `tests` folder includes unit tests implemented with `pytest`. Each supported website has its own dedicated test script.
+
+To isolate tests from live web content, HTTP requests are mocked using the `responses` library, while Selenium WebDriver interactions are simulated with `MagicMock`. Instead of fetching real pages, local HTML and PDF files stored in the fixtures folder are loaded to represent search results pages. Tests then verify that metadata extraction or document URL collection behave as expected. The test for [EUR-Lex](https://eur-lex.europa.eu/advanced-search-form.html) for example can be run from the command line as follows: `pytest tests/test_eurlex.py --maxfail=1 --disable-warnings -q`
+
+To validate if the scraper code adapts correctly to potential site modifications, update the URLs the test scripts and their corresponding search results pages in the fixture files.
+
 ## Good to Know
 
 - The European Environment Agency's website loads content dynamically. To handle this, the scraper uses [Selenium WebDriver](https://www.selenium.dev/documentation/webdriver/). When the scraper runs, it will automatically launch a Chrome browser instance to navigate and extract the necessary data.

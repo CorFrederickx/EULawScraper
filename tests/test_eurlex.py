@@ -11,24 +11,20 @@ FIXTURE_PATH = os.path.join(os.path.dirname(__file__), "fixtures", "eurlex_sampl
 @responses.activate
 def test_eurlex_scraper_extracts_metadata_correctly():
     """
-    Sanity test to ensure EurLexScraper still correctly extracts metadata from a search results page.
+    Sanity test to ensure EurLexScraper still correctly extracts metadata from a locally stored search results page.
     """
 
-    # This should match the URL you saved the fixture from
+    # this should match the URL you saved the fixture from
     url = "https://eur-lex.europa.eu/search.html?SUBDOM_INIT=LEGISLATION&textScope0=ti-te&DTS_SUBDOM=LEGISLATION&DTS_DOM=EU_LAW&lang=en&type=advanced&date0=ALL%3A13122024%7C13022025&qid=1749741202686&andText0=sheep+wool"
 
-    # Load your saved search results HTML
     with open(FIXTURE_PATH, encoding="utf-8") as f:
         html = f.read()
 
-    # Intercept any HTTP GET to that URL and return the saved HTML
     responses.add(responses.GET, url, body=html, status=200)
 
-    # Init scraper and run the metadata extractor
     scraper = EurLexScraper(base_url=url)
     scraper.extract_metadata(url)
 
-    # Get the results
     metadata_list = scraper.metadata_list
 
     assert isinstance(metadata_list, list), "metadata_list should be a list"
